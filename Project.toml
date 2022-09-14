@@ -1,0 +1,7 @@
+name = "EQDSKReader"
+uuid = "0d45e213-aaf5-468d-97e2-5d9984e6e107"
+authors = ["Dmitri Portnov <d.portnov@iterrf.ru>"]
+version = "0.1.0"
+
+[compat]
+julia = "1.8.1"
