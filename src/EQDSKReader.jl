@@ -42,10 +42,7 @@ boundary and the surrounding limiter contour in also provided."
 """
 module EQDSKReader
 
-export
-    Data,
-    read_eqdsk,
-    read_format_2000
+export Data, read_eqdsk, read_format_2000
 
 # Base.@kwdef
 """
@@ -107,22 +104,21 @@ struct Data
     limitr::Int16
     rbbbs::Vector{Float32}
     zbbbs::Vector{Float32}
-    rlim::Vector{Float32} 
-    zlim::Vector{Float32} 
+    rlim::Vector{Float32}
+    zlim::Vector{Float32}
 end
 
 join_lines_skipping_eols(io) = reduce(*, readlines(io))
 read_str(io, nb) = String(Base.read(io, nb))
-read_num(::Type{T}, io, nb) where {T<:Number} = parse(T, read_str(io, nb))
-read_num(t::Type{T}, io, nb, n) where {T<:Number} = (read_num(t, io, nb) for _ in 1:n)
+read_num(::Type{T}, io, nb) where {T <: Number} = parse(T, read_str(io, nb))
+read_num(::Type{T}, io, nb, n) where {T <: Number} = (read_num(T, io, nb) for _ in 1:n)
 read_floats(io, n) = read_num(Float32, io, 16, n)
 read_vector(io, n) = Float32[read_floats(io, n)...]
-
 
 function read_eqdsk(io)
     s = IOBuffer(join_lines_skipping_eols(io))
     # read (neqdsk,2000) (case(i),i=1,6),idum,nw,nh
-    case = read_str(s, 48)    
+    case = read_str(s, 48)
     skip(s, 4)
     nw, nh = read_num(Int16, s, 4, 2) # row 1
     # read (neqdsk,2020) rdim,zdim,rcentr,rleft,zmid
@@ -147,21 +143,21 @@ function read_eqdsk(io)
     # read (neqdsk,2020) (pprime(i),i=1,nw)
     pprime = read_vector(s, nw)
     # read (neqdsk,2020) ((psirz(i,j),i=1,nw),j=1,nh)
-    psirz = reshape(read_vector(s, nw*nh), (nw, nh))
+    psirz = reshape(read_vector(s, nw * nh), (nw, nh))
     # read (neqdsk,2020) (qpsi(i),i=1,nw)
     qpsi = read_vector(s, nw)
     # read (neqdsk,2022) nbbbs,limitr
     nbbbs, limitr = read_num(Int16, s, 5, 2)
     # read (neqdsk,2020) (rbbbs(i),zbbbs(i),i=1,nbbbs)
-    A = read_vector(s, 2*nbbbs)
-    rbbbs = A[1,:]
-    zbbbs = A[2,:] 
+    A = read_vector(s, 2 * nbbbs)
+    rbbbs = A[1, :]
+    zbbbs = A[2, :]
     # read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
-    A = read_vector(s, 2*limitr)
-    rlim = A[1,:]
-    zlim = A[2,:] 
+    A = read_vector(s, 2 * limitr)
+    rlim = A[1, :]
+    zlim = A[2, :]
 
-    EQDSKReader.Data(
+    return EQDSKReader.Data(
         case,
         nw,
         nh,
@@ -187,9 +183,8 @@ function read_eqdsk(io)
         rbbbs,
         zbbbs,
         rlim,
-        zlim
+        zlim,
     )
 end
-
 
 end
