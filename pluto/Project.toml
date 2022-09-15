@@ -1,0 +1,4 @@
+[deps]
+EQDSKReader = "0d45e213-aaf5-468d-97e2-5d9984e6e107"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
