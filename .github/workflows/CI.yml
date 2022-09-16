@@ -37,7 +37,7 @@ jobs:
         with:
           files: lcov.info
   docs:
-    name: Documentation
+    name: Documentation test
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -56,3 +56,4 @@ jobs:
             using EQDSKReader
             DocMeta.setdocmeta!(EQDSKReader, :DocTestSetup, :(using EQDSKReader); recursive=true)
             doctest(EQDSKReader)'
+
