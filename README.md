@@ -16,3 +16,9 @@ Tools to read and demo files in EQDSK format, representing plasma equilibrium mo
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle) 
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 
+<!--
+Practices
+
+Project Setup: https://bjack205.github.io/tutorial/2021/07/16/julia_package_setup.html
+
+-->

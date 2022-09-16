@@ -1,11 +1,10 @@
 using EQDSKReader
 using Test
 
-HERE = dirname(@__FILE__)
+const HERE = dirname(@__FILE__)
+const INPUT_DATA = joinpath(HERE, "data", "beforeTQ.eqdsk")
 
-@testset "Read EQDSK file 1" begin
-    input_data = joinpath(HERE, "data", "beforeTQ.eqdsk")
-    data::EQDSKReader.Data = open(read_eqdsk, input_data)
+function check_before_tq_file(data)
     @test occursin("disr", data.case)
     @test data.nw == 65
     @test data.nh == 129
@@ -19,9 +18,9 @@ HERE = dirname(@__FILE__)
     @test data.pprime[1] == -0.674156969f+06
     @test data.pprime[end] == 0.0
     @test size(data.psirz) == (data.nw, data.nh)
-    @test data.psirz[1,1] == -0.988481275f+00
+    @test data.psirz[1, 1] == -0.988481275f+00
     @test data.psirz[data.nw, 1] == -0.685782937f-01
-    @test data.psirz[1,data.nh] == -0.262203469f+00
+    @test data.psirz[1, data.nh] == -0.262203469f+00
     @test data.psirz[data.nw, data.nh] == 0.848762220f+00
     @test data.qpsi[1] == 0.889066518f+00
     @test data.qpsi[end] == 0.415200567f+01
@@ -30,3 +29,21 @@ HERE = dirname(@__FILE__)
     # TODO dvp: add other corners
     @test data.zlim[end] == -0.680490000f+00
 end
+
+
+@testset "Building from path and stream" begin
+    data = Content(INPUT_DATA)
+    check_before_tq_file(data)
+    open(INPUT_DATA) do io
+        data2 = Content(io)
+        # @test data == data2  
+    end
+end
+
+# @testset "Building from stream" begin
+#     open(INPUT_DATA) do io
+#         check_before_tq_file(Content(io))
+#     end
+# end
+
+nothing

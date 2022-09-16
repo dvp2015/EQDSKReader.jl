@@ -1,7 +1,10 @@
 """
     EQDSKReader
 
-Functionality to read EQDSK file.
+Provides functionality to read EQDSK file.
+
+
+## Data structure
 
 From "G_EQDSK.pdf":
 
@@ -19,7 +22,7 @@ boundary and the surrounding limiter contour in also provided."
         pprime(1),qpsi(1),rbbbs(1),zbbbs(1),
 
         rlim(1),zlim(1)
-        c
+c
         read (neqdsk,2000) (case(i),i=1,6),idum,nw,nh
         read (neqdsk,2020) rdim,zdim,rcentr,rleft,zmid
         read (neqdsk,2020) rmaxis,zmaxis,simag,sibry,bcentr
@@ -34,7 +37,7 @@ boundary and the surrounding limiter contour in also provided."
         read (neqdsk,2022) nbbbs,limitr
         read (neqdsk,2020) (rbbbs(i),zbbbs(i),i=1,nbbbs)
         read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
-        c
+c
         2000 format (6a8,3i4)
         2020 format (5e16.9)
         2022 format (2i5)
@@ -42,13 +45,14 @@ boundary and the surrounding limiter contour in also provided."
 """
 module EQDSKReader
 
-export Data, read_eqdsk, read_format_2000
+using StructEquality
 
-# Base.@kwdef
+export Content
+
 """
-    Data
+    Content
 
-Content structure of EQDSK file.
+Content of EQDSK file.
 
 Attrs:
 
@@ -79,7 +83,7 @@ Attrs:
     rlim    R of surrounding limiter contour in meter
     zlim    Z of surrounding limiter contour in mete
 """
-struct Data
+struct Content
     case::String
     nw::Int16
     nh::Int16
@@ -108,56 +112,68 @@ struct Data
     zlim::Vector{Float32}
 end
 
-join_lines_skipping_eols(io) = reduce(*, readlines(io))
-read_str(io, nb) = String(Base.read(io, nb))
-read_num(::Type{T}, io, nb) where {T <: Number} = parse(T, read_str(io, nb))
-read_num(::Type{T}, io, nb, n) where {T <: Number} = (read_num(T, io, nb) for _ in 1:n)
-read_floats(io, n) = read_num(Float32, io, 16, n)
-read_vector(io, n) = Float32[read_floats(io, n)...]
+"""
+    Content(io::IO)
 
-function read_eqdsk(io)
+Build [`Content`](@ref) object from an input stream with a in EQDSK format.
+
+"""
+Content(io::IO) = read_eqdsk(io)
+"""
+    Content(path::AbstractString)
+
+Build [`Content`](@ref) object from a file with a in EQDSK format.
+
+"""
+Content(path::AbstractString) = open(read_eqdsk, path)
+
+Base.hash(a::Content, h::UInt) = struct_hash(a, h)
+Base.:(==)(a::Content, b::Content) = struct_equal(a, b)
+Base.isequal(a::Content, b::Content) = struct_isequal(a, b)
+Base.isapprox(a::Content, b::Content; kwargs...) = struct_isapprox(a, b; kwargs...)
+
+join_lines_skipping_eols(io::IO) = reduce(*, readlines(io))
+read_str(io::IO, bytes::Integer) = String(Base.read(io, bytes))
+function read_num(::Type{T}, io::IO, bytes::Integer) where {T<:Number}
+    return parse(T, read_str(io, bytes))
+end
+
+function read_num(::Type{T}, io::IO, bytes::Integer, count::Integer) where {T<:Number}
+    return (read_num(T, io, bytes) for _ in 1:count)
+end
+
+read_floats(io::IO, count::Integer) = read_num(Float32, io, 16, count)
+read_vector(io::IO, count::Integer) = Float32[read_floats(io, count)...]
+
+function read_eqdsk(io::IO)
     s = IOBuffer(join_lines_skipping_eols(io))
-    # read (neqdsk,2000) (case(i),i=1,6),idum,nw,nh
     case = read_str(s, 48)
     skip(s, 4)
     nw, nh = read_num(Int16, s, 4, 2) # row 1
-    # read (neqdsk,2020) rdim,zdim,rcentr,rleft,zmid
     rdim, zdim, rcentr, rleft, zmid = read_floats(s, 5)  # row 2
-    # read (neqdsk,2020) rmaxis,zmaxis,simag,sibry,bcentr
     rmaxis, zmaxis, simag, sibry, bcentr = read_floats(s, 5)  # row 3
-    # read (neqdsk,2020) current,simag,xdum,rmaxis,xdum
     current, simag2, _, rmaxis2, _ = read_floats(s, 5)  # row 4
-    @assert simag2 == simag
-    @assert rmaxis2 == rmaxis
-    # read (neqdsk,2020) zmaxis,xdum,sibry,xdum,xdum
+    # the input contains duplicating values, let's use them to check the content
+    simag2 == simag || error("Invalid file content on simag2")
+    rmaxis2 == rmaxis || error("Invalid file content on rmaxis2")
     zmaxis2, _, sibry2, _, _ = read_floats(s, 5)  # row 5
-    @assert zmaxis2 == zmaxis
-    @assert sibry2 == sibry
-
-    # read (neqdsk,2020) (fpol(i),i=1,nw)
+    zmaxis2 == zmaxis || error("Invalid file content on zmaxis2")
+    sibry2 == sibry || error("Invalid file content on sibry2")
     fpol = read_vector(s, nw)
-    # read (neqdsk,2020) (pres(i),i=1,nw)
     pres = read_vector(s, nw)
-    # read (neqdsk,2020) (ffprim(i),i=1,nw)
     ffprim = read_vector(s, nw)
-    # read (neqdsk,2020) (pprime(i),i=1,nw)
     pprime = read_vector(s, nw)
-    # read (neqdsk,2020) ((psirz(i,j),i=1,nw),j=1,nh)
     psirz = reshape(read_vector(s, nw * nh), (nw, nh))
-    # read (neqdsk,2020) (qpsi(i),i=1,nw)
     qpsi = read_vector(s, nw)
-    # read (neqdsk,2022) nbbbs,limitr
     nbbbs, limitr = read_num(Int16, s, 5, 2)
-    # read (neqdsk,2020) (rbbbs(i),zbbbs(i),i=1,nbbbs)
     A = read_vector(s, 2 * nbbbs)
     rbbbs = A[1, :]
     zbbbs = A[2, :]
-    # read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
     A = read_vector(s, 2 * limitr)
     rlim = A[1, :]
     zlim = A[2, :]
 
-    return EQDSKReader.Data(
+    return Content(
         case,
         nw,
         nh,

@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [deps]
 JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
+StructEquality = "6ec83bb0-ed9f-11e9-3b4c-2b04cb4e219c"
 
 [compat]
 JuliaFormatter = "1"
