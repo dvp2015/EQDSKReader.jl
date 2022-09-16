@@ -4,7 +4,12 @@ CurrentModule = EQDSKReader
 
 # EQDSKReader
 
-Documentation for [EQDSKReader](https://gitlab.iterrf.ru/dvp/EQDSKReader.jl).
+Documentation for [EQDSKReader](https://github.com/dvp2015/EQDSKReader.jl).
+
+
+```@contents
+Pages = ["api.md"]
+```
 
 ```@index
 ```
