@@ -2,6 +2,7 @@
 Coverage = "a2441757-f6aa-5fb2-8edb-039e3f45d037"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterTools = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
+GR = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
 Glob = "c27321d9-0574-5035-807b-f59d2c89b15c"
 JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
 LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
