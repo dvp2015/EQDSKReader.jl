@@ -2,13 +2,12 @@
 
 module Clean
 
-using Glob
+using Coverage: clean_folder
 
 const HERE = dirname(dirname(@__FILE__))
 
 function clean()
-    files_to_delete = glob("**/*.cov", HERE)
-    foreach(rm, files_to_delete)
+    clean_folder(HERE)
 end    
 
 export clean
