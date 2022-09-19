@@ -127,29 +127,27 @@ Build [`Content`](@ref) object from a file with a in EQDSK format.
 """
 Content(path::AbstractString) = open(read_eqdsk, path)
 
-Base.hash(a::Content, h::UInt) = struct_hash(a, h)
-Base.:(==)(a::Content, b::Content) = struct_equal(a, b)
-Base.isequal(a::Content, b::Content) = struct_isequal(a, b)
-Base.isapprox(a::Content, b::Content; kwargs...) = struct_isapprox(a, b; kwargs...)
+@struct_hash_equal_isequal_isapprox Content
 
 join_lines_skipping_eols(io::IO) = reduce(*, readlines(io))
 read_str(io::IO, bytes::Integer) = String(Base.read(io, bytes))
-function read_num(::Type{T}, io::IO, bytes::Integer) where {T<:Number}
+
+function read_number(::Type{T}, io::IO, bytes::Integer) where {T<:Number}
     return parse(T, read_str(io, bytes))
 end
 
-function read_num(::Type{T}, io::IO, bytes::Integer, count::Integer) where {T<:Number}
-    return (read_num(T, io, bytes) for _ in 1:count)
+function read_numbers(::Type{T}, io::IO, bytes::Integer, count::Integer) where {T<:Number}
+    return (read_number(T, io, bytes) for _ in 1:count)
 end
 
-read_floats(io::IO, count::Integer) = read_num(Float32, io, 16, count)
+read_floats(io::IO, count::Integer) = read_numbers(Float32, io, 16, count)
 read_vector(io::IO, count::Integer) = Float32[read_floats(io, count)...]
 
 function read_eqdsk(io::IO)
     s = IOBuffer(join_lines_skipping_eols(io))
     case = read_str(s, 48)
     skip(s, 4)
-    nw, nh = read_num(Int16, s, 4, 2) # row 1
+    nw, nh = read_numbers(Int16, s, 4, 2) # row 1
     rdim, zdim, rcentr, rleft, zmid = read_floats(s, 5)  # row 2
     rmaxis, zmaxis, simag, sibry, bcentr = read_floats(s, 5)  # row 3
     current, simag2, _, rmaxis2, _ = read_floats(s, 5)  # row 4
@@ -165,7 +163,7 @@ function read_eqdsk(io::IO)
     pprime = read_vector(s, nw)
     psirz = reshape(read_vector(s, nw * nh), (nw, nh))
     qpsi = read_vector(s, nw)
-    nbbbs, limitr = read_num(Int16, s, 5, 2)
+    nbbbs, limitr = read_numbers(Int16, s, 5, 2)
     A = read_vector(s, 2 * nbbbs)
     rbbbs = A[1, :]
     zbbbs = A[2, :]
