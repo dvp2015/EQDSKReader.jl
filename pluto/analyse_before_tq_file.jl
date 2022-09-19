@@ -45,7 +45,9 @@ content = Content(DATA_FILE)
 plotly()
 
 # ╔═╡ 5f8ce35c-a55f-4067-a4e1-e93da32dbc57
-scatter(content.rbbbs, content.zbbbs)
+plot(;aspect_ratio=:equal, xlabel="R,m", ylabel="Z,m", xlim=(0.0,3.0), ylim=(-2.0, 2.0))
+plot!(content.rbbbs, content.zbbbs, label="plasma boundary")
+plot!(content.rlim, content.zlim, label="limiter")
 
 # ╔═╡ 41de7097-5739-4242-ab10-6b38b9b12b6c
 
