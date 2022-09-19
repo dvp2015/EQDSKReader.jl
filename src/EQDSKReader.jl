@@ -2,46 +2,6 @@
     EQDSKReader
 
 Provides functionality to read EQDSK file.
-
-
-## Data structure
-
-From "G_EQDSK.pdf":
-
-"...Briefly, a right-handed
-cylindrical coordinate system (R, φ, Ζ) is used. The G EQDSK provides
-information on the pressure, poloidal current function, q profile on a uniform flux
-grid from the magnetic axis to the plasma boundary and the poloidal flux
-function on the rectangular computation grid. Information on the plasma
-boundary and the surrounding limiter contour in also provided."
-
-```code:
-        character*10 case(6)
-        dimension psirz(nw,nh),fpol(1),pres(1),ffprim(1),
-
-        pprime(1),qpsi(1),rbbbs(1),zbbbs(1),
-
-        rlim(1),zlim(1)
-c
-        read (neqdsk,2000) (case(i),i=1,6),idum,nw,nh
-        read (neqdsk,2020) rdim,zdim,rcentr,rleft,zmid
-        read (neqdsk,2020) rmaxis,zmaxis,simag,sibry,bcentr
-        read (neqdsk,2020) current,simag,xdum,rmaxis,xdum
-        read (neqdsk,2020) zmaxis,xdum,sibry,xdum,xdum
-        read (neqdsk,2020) (fpol(i),i=1,nw)
-        read (neqdsk,2020) (pres(i),i=1,nw)
-        read (neqdsk,2020) (ffprim(i),i=1,nw)
-        read (neqdsk,2020) (pprime(i),i=1,nw)
-        read (neqdsk,2020) ((psirz(i,j),i=1,nw),j=1,nh)
-        read (neqdsk,2020) (qpsi(i),i=1,nw)
-        read (neqdsk,2022) nbbbs,limitr
-        read (neqdsk,2020) (rbbbs(i),zbbbs(i),i=1,nbbbs)
-        read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
-c
-        2000 format (6a8,3i4)
-        2020 format (5e16.9)
-        2022 format (2i5)
-```
 """
 module EQDSKReader
 
@@ -143,6 +103,52 @@ end
 read_floats(io::IO, count::Integer) = read_numbers(Float32, io, 16, count)
 read_vector(io::IO, count::Integer) = Float32[read_floats(io, count)...]
 
+
+# From "G_EQDSK.pdf":
+
+# "...Briefly, a right-handed
+# cylindrical coordinate system (R, φ, Ζ) is used. The G EQDSK provides
+# information on the pressure, poloidal current function, q profile on a uniform flux
+# grid from the magnetic axis to the plasma boundary and the poloidal flux
+# function on the rectangular computation grid. Information on the plasma
+# boundary and the surrounding limiter contour in also provided."
+
+# ```code:
+#         character*10 case(6)
+#         dimension psirz(nw,nh),fpol(1),pres(1),ffprim(1),
+
+#         pprime(1),qpsi(1),rbbbs(1),zbbbs(1),
+
+#         rlim(1),zlim(1)
+# c
+#         read (neqdsk,2000) (case(i),i=1,6),idum,nw,nh
+#         read (neqdsk,2020) rdim,zdim,rcentr,rleft,zmid
+#         read (neqdsk,2020) rmaxis,zmaxis,simag,sibry,bcentr
+#         read (neqdsk,2020) current,simag,xdum,rmaxis,xdum
+#         read (neqdsk,2020) zmaxis,xdum,sibry,xdum,xdum
+#         read (neqdsk,2020) (fpol(i),i=1,nw)
+#         read (neqdsk,2020) (pres(i),i=1,nw)
+#         read (neqdsk,2020) (ffprim(i),i=1,nw)
+#         read (neqdsk,2020) (pprime(i),i=1,nw)
+#         read (neqdsk,2020) ((psirz(i,j),i=1,nw),j=1,nh)
+#         read (neqdsk,2020) (qpsi(i),i=1,nw)
+#         read (neqdsk,2022) nbbbs,limitr
+#         read (neqdsk,2020) (rbbbs(i),zbbbs(i),i=1,nbbbs)
+#         read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
+# c
+#         2000 format (6a8,3i4)
+#         2020 format (5e16.9)
+#         2022 format (2i5)
+
+"""
+    read_eqdsk(io::IO)
+
+Reads a stream according to spec found in G_EQDSK.pdf.
+
+## returns
+    [`Content`](@ref)
+
+"""
 function read_eqdsk(io::IO)
     s = IOBuffer(join_lines_skipping_eols(io))
     case = read_str(s, 48)
@@ -164,10 +170,10 @@ function read_eqdsk(io::IO)
     psirz = reshape(read_vector(s, nw * nh), (nw, nh))
     qpsi = read_vector(s, nw)
     nbbbs, limitr = read_numbers(Int16, s, 5, 2)
-    A = read_vector(s, 2 * nbbbs)
+    A = reshape(read_vector(s, 2 * nbbbs), (2, nbbbs))
     rbbbs = A[1, :]
     zbbbs = A[2, :]
-    A = read_vector(s, 2 * limitr)
+    A = reshape(read_vector(s, 2 * limitr), (2, limitr))
     rlim = A[1, :]
     zlim = A[2, :]
 

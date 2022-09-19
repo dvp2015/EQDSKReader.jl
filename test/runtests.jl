@@ -27,6 +27,10 @@ function check_before_tq_file(data)
     @test data.nbbbs == 89
     @test data.limitr == 59
     # TODO dvp: add other corners
+    @test length(data.rbbbs) == data.nbbbs
+    @test length(data.zbbbs) == data.nbbbs
+    @test length(data.rlim) == data.limitr
+    @test length(data.zlim) == data.limitr
     @test data.zlim[end] == -0.680490000f+00
 end
 
@@ -36,14 +40,12 @@ end
     check_before_tq_file(data)
     open(INPUT_DATA) do io
         data2 = Content(io)
-        # @test data == data2  
+        @test hash(data) == hash(data2)
+        @test data == data2  
+        @test isequal(data, data2)
+        @test data ≈ data2
     end
 end
 
-# @testset "Building from stream" begin
-#     open(INPUT_DATA) do io
-#         check_before_tq_file(Content(io))
-#     end
-# end
 
 nothing
