@@ -7,7 +7,7 @@ module EQDSKReader
 
 using StructEquality
 
-export Content
+export Content, zpoints, rpoints, normalize_psi
 
 """
     Content
@@ -102,7 +102,6 @@ end
 
 read_floats(io::IO, count::Integer) = read_numbers(Float32, io, 16, count)
 read_vector(io::IO, count::Integer) = Float32[read_floats(io, count)...]
-
 
 # From "G_EQDSK.pdf":
 
@@ -214,14 +213,31 @@ end
 ## returns
         Coordinates of Ψ(r,z) along tokamak large radius R. 
 """
-rpoints(c::Content) = range(c.rleft, c.rleft + c.rdim, length=c.nw)
+rpoints(c::Content) = range(c.rleft, c.rleft + c.rdim; length=c.nw)
 """
     zpoints(c::Content)
 
 ## returns
 
-        Coordinates of Ψ(r,z) along tokamak vertial axis Z. 
+    Coordinates of Ψ(r,z) along tokamak vertial axis Z. 
 """
-zpoints(c::Content) = range(c.zmid - 0.5*c.zdim, c.zmid + 0.5*c.zdim, length=c.nh)
+zpoints(c::Content) = range(c.zmid - 0.5f0 * c.zdim, c.zmid + 0.5f0 * c.zdim; length=c.nh)
+
+"""
+    function normalize_psi(ψ::Matrix{Float32})::Matrix{Float32}
+
+Transform matrix `Ψ` to have zero at minimum and 1.0 
+where there were value 0.0.
+
+## returns
+
+    Transformed matrix
+"""
+function normalize_psi(ψ::Matrix{Float32})::Matrix{Float32}
+    ψ_min, _ = extrema(ψ)
+    return (ψ .- ψ_min) / -ψ_min
+end
+
+normalize_psi(c::Content) = normalize_psi(c.psirz)
 
 end

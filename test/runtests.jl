@@ -1,3 +1,5 @@
+insert!(LOAD_PATH, 1, "..")
+
 using EQDSKReader
 using Test
 
@@ -32,6 +34,12 @@ function check_before_tq_file(data)
     @test length(data.rlim) == data.limitr
     @test length(data.zlim) == data.limitr
     @test data.zlim[end] == -0.680490000f+00
+    r = rpoints(data)
+    @test length(r) == data.nw
+    @test eltype(r) == Float32
+    z = zpoints(data)
+    @test length(z) == data.nh
+    @test eltype(z) == Float32
 end
 
 

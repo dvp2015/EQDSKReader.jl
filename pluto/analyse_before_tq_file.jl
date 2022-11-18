@@ -66,7 +66,7 @@ begin
 		ylim=(z[1], z[end]), 
 		size=(500, 700)
 	)
-	contour!(r, z, transpose(content.psirz), fill=true, )
+	contourf!(r, z, transpose(content.psirz), )
 	plot!(content.rbbbs, content.zbbbs, label="plasma boundary")
 	plot!(content.rlim, content.zlim, label="limiter")
 	scatter!(
