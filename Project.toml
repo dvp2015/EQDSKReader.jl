@@ -1,13 +1,11 @@
 name = "EQDSKReader"
 uuid = "0d45e213-aaf5-468d-97e2-5d9984e6e107"
 authors = ["Dmitri Portnov <d.portnov@iterrf.ru>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
-JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
 StructEquality = "6ec83bb0-ed9f-11e9-3b4c-2b04cb4e219c"
 
 [compat]
-JuliaFormatter = "1"
 StructEquality = "2"
 julia = "1.8.1"

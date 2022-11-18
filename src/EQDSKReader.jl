@@ -146,6 +146,7 @@ read_vector(io::IO, count::Integer) = Float32[read_floats(io, count)...]
 Reads a stream according to spec found in G_EQDSK.pdf.
 
 ## returns
+
     [`Content`](@ref)
 
 """
@@ -206,5 +207,21 @@ function read_eqdsk(io::IO)
         zlim,
     )
 end
+
+"""
+    rpoints(c::Content)
+
+## returns
+        Coordinates of Ψ(r,z) along tokamak large radius R. 
+"""
+rpoints(c::Content) = range(c.rleft, c.rleft + c.rdim, length=c.nw)
+"""
+    zpoints(c::Content)
+
+## returns
+
+        Coordinates of Ψ(r,z) along tokamak vertial axis Z. 
+"""
+zpoints(c::Content) = range(c.zmid - 0.5*c.zdim, c.zmid + 0.5*c.zdim, length=c.nh)
 
 end
