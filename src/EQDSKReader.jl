@@ -227,7 +227,7 @@ zpoints(c::Content) = range(c.zmid - 0.5f0 * c.zdim, c.zmid + 0.5f0 * c.zdim; le
     function normalize_psi(ψ::Matrix{Float32})::Matrix{Float32}
 
 Transform matrix `Ψ` to have zero at minimum and 1.0 
-where there were value 0.0.
+on the specified plasma boundary.
 
 ## returns
 
@@ -235,7 +235,7 @@ where there were value 0.0.
 """
 function normalize_psi(ψ::Matrix{Float32})::Matrix{Float32}
     ψ_min, _ = extrema(ψ)
-    return (ψ .- ψ_min) / -ψ_min
+    return (ψ .- ψ_min) / -0.746ψ_min
 end
 
 normalize_psi(c::Content) = normalize_psi(c.psirz)

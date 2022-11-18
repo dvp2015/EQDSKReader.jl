@@ -81,7 +81,7 @@ end
 # ╔═╡ 41de7097-5739-4242-ab10-6b38b9b12b6c
 function normalize_psi(ψ)
 	ψ_min, _ = extrema(ψ)
-	(ψ .- ψ_min) / -ψ_min
+	(ψ .- ψ_min) / -0.746ψ_min
 end
 
 # ╔═╡ e423a56d-62d7-4d77-bb62-a8add3b270cb
@@ -158,9 +158,10 @@ let
 	cntr1 = contour!(ax,
 		r, z, ψ, 
 		levels=[1.0], 
-		colormap=:reds, 
-		linestyle="-",
-		linewidth=1,
+		color=:yellow,
+		alpha=0.25,
+		# colormap=:grays, 
+		linewidth=2,
 	)
 	rbbs_points = [Point2f(x,y) for (x,y) in zip(content.rbbbs, content.zbbbs)]
 	rlim_points = [Point2f(x,y) for (x,y) in zip(content.rlim, content.zlim)]
