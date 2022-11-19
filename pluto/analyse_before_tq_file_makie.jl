@@ -93,41 +93,9 @@ function select_rz(Ψ, value)
 end
 
 # ╔═╡ 1f5b822d-1c7e-4093-9bd3-48d5b88267f0
-let
-	# f = Figure(resolution=(500, 800))
-	# ax = Axis(
-	# 	f[1,1]; 
-	# 	xlabel=L"R,m", 
-	# 	ylabel=L"Z,m", 
-	# 	aspect=DataAspect(),
-	# 	title="Normalized Ψ"
-	# )
-	# xlims!(ax, r[1], r[end])
-	# ylims!(ax, z[1], z[end])
-	# # colsize!(f.layout, 1, Aspect(1, aspect))
-	# ψ = normalize_psi(content.psirz)
-	# Ψ_min, Ψ_max = extrema(ψ)
-	# # Ψ_min, Ψ_max = 0, 1
-	# levels=range(Ψ_min, Ψ_max, length=15)
-	# cntr = contourf!(
-	# 	r, z, ψ, 
-	# 	levels=levels, 
-	# 	colormap=:greens, 
-	# 	linestyle="-",
-	# )
-	# rbbs_points = [Point2f(x,y) for (x,y) in zip(content.rbbbs, content.zbbbs)]
-	# rlim_points = [Point2f(x,y) for (x,y) in zip(content.rlim, content.zlim)]
-	# scatter!(ax, content.rmaxis, content.zmaxis, color=:gray60, marker=:xcross, label="Magnetic axis")
-	# lines!(ax, rbbs_points, label="Plasma boundary")
-	# lines!(ax, rlim_points, label="Limiter")
-	# # plot(;aspect_ratio=:equal, xlabel="R,m", ylabel="Z,m", xlim=(0.0,3.0), ylim=(-2.0, 2.0))
-	# # plot!(content.rbbbs, content.zbbbs, label="plasma boundary")
-	# # plot!(content.rlim, content.zlim, label="limiter")
-	# # resize_to_layout!(f)
-	# Colorbar(f[1,2], cntr, label=L"Ψ(R,Z)")
-	# axislegend()
-	# f
-	content.rbbbs
+XR, XZ = let
+	i = argmin(content.zbbbs)
+	content.rbbbs[i], content.zbbbs[i]
 end
 
 # ╔═╡ 044231f1-efd6-4d98-9c77-3e97723fa574
@@ -165,7 +133,8 @@ let
 	)
 	rbbs_points = [Point2f(x,y) for (x,y) in zip(content.rbbbs, content.zbbbs)]
 	rlim_points = [Point2f(x,y) for (x,y) in zip(content.rlim, content.zlim)]
-	scatter!(ax, content.rmaxis, content.zmaxis, color=:gray60, marker=:xcross, label="Magnetic axis")
+	scatter!(ax, content.rmaxis, content.zmaxis, color=:gray60, marker=:cross, label="Magnetic axis")
+	scatter!(ax, XR, XZ, color=:gray90, marker=:xcross, label="X point")
 	lines!(ax, rbbs_points, label="Plasma boundary")
 	lines!(ax, rlim_points, label="Limiter")
 	# plot(;aspect_ratio=:equal, xlabel="R,m", ylabel="Z,m", xlim=(0.0,3.0), ylim=(-2.0, 2.0))

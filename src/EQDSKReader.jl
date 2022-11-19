@@ -240,4 +240,15 @@ end
 
 normalize_psi(c::Content) = normalize_psi(c.psirz)
 
+"""
+    xpoint(c::Content)
+
+Lowest point at plasma boundary.
+This is close to X-point in devertor area, so the name.
+"""
+function xpoint(c::Content)::Tuple{Float32, Float32}
+	i = argmin(c.zbbbs)
+	c.rbbbs[i], c.zbbbs[i]
+end
+
 end
