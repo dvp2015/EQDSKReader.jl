@@ -1,9 +1,9 @@
-insert!(LOAD_PATH, 1, "..")
+const HERE = dirname(@__FILE__)
+insert!(LOAD_PATH, 1, dirname(HERE))
 
 using EQDSKReader
 using Test
 
-const HERE = dirname(@__FILE__)
 const INPUT_DATA = joinpath(HERE, "data", "beforeTQ.eqdsk")
 
 function check_before_tq_file(data)
@@ -40,6 +40,9 @@ function check_before_tq_file(data)
     z = zpoints(data)
     @test length(z) == data.nh
     @test eltype(z) == Float32
+    lbp = lowest_boundary_point(data)
+    @test lbp[2] ≈ -0.68f0
+
 end
 
 

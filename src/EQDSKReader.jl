@@ -7,7 +7,7 @@ module EQDSKReader
 
 using StructEquality
 
-export Content, zpoints, rpoints, normalize_psi
+export Content, zpoints, rpoints, normalize_psi, lowest_boundary_point
 
 """
     Content
@@ -235,18 +235,18 @@ on the specified plasma boundary.
 """
 function normalize_psi(ψ::Matrix{Float32})::Matrix{Float32}
     ψ_min, _ = extrema(ψ)
-    return (ψ .- ψ_min) / -0.746ψ_min
+    (ψ .- ψ_min) / -0.746ψ_min
 end
 
 normalize_psi(c::Content) = normalize_psi(c.psirz)
 
 """
-    xpoint(c::Content)
+    lowest_boundary_point(c::Content)
 
-Lowest point at plasma boundary.
+lowest_boundary_point point at plasma boundary.
 This is close to X-point in devertor area, so the name.
 """
-function xpoint(c::Content)::Tuple{Float32, Float32}
+function lowest_boundary_point(c::Content)::Tuple{Float32, Float32}
 	i = argmin(c.zbbbs)
 	c.rbbbs[i], c.zbbbs[i]
 end
