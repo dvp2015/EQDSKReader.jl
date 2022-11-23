@@ -5,10 +5,21 @@ Provides functionality to read EQDSK file.
 """
 module EQDSKReader
 
+using Interpolations
+using Statistics
 using StructEquality
 
-export Content, zpoints, rpoints, normalize_psi, lowest_boundary_point
-
+export Content,
+    zpoints,
+    rpoints,
+    normalize_psi,
+    lowest_boundary_point,
+    calc_boundary_psi,
+    create_psi_interpolator,
+    calc_boundary_psi,
+    create_normalized_psi_interpolator,
+    psi_separation_z,
+    in_plasma
 """
     Content
 
@@ -47,29 +58,29 @@ struct Content
     case::String
     nw::Int16
     nh::Int16
-    rdim::Float32
-    zdim::Float32
-    rcentr::Float32
-    rleft::Float32
-    zmid::Float32
-    rmaxis::Float32
-    zmaxis::Float32
-    simag::Float32
-    sibry::Float32
-    bcentr::Float32
-    current::Float32
-    fpol::Vector{Float32}
-    pres::Vector{Float32}
-    ffprim::Vector{Float32}
-    pprime::Vector{Float32}
-    psirz::Matrix{Float32}
-    qpsi::Vector{Float32}
+    rdim::Float64
+    zdim::Float64
+    rcentr::Float64
+    rleft::Float64
+    zmid::Float64
+    rmaxis::Float64
+    zmaxis::Float64
+    simag::Float64
+    sibry::Float64
+    bcentr::Float64
+    current::Float64
+    fpol::Vector{Float64}
+    pres::Vector{Float64}
+    ffprim::Vector{Float64}
+    pprime::Vector{Float64}
+    psirz::Matrix{Float64}
+    qpsi::Vector{Float64}
     nbbbs::Int16
     limitr::Int16
-    rbbbs::Vector{Float32}
-    zbbbs::Vector{Float32}
-    rlim::Vector{Float32}
-    zlim::Vector{Float32}
+    rbbbs::Vector{Float64}
+    zbbbs::Vector{Float64}
+    rlim::Vector{Float64}
+    zlim::Vector{Float64}
 end
 
 """
@@ -100,8 +111,8 @@ function read_numbers(::Type{T}, io::IO, bytes::Integer, count::Integer) where {
     return (read_number(T, io, bytes) for _ in 1:count)
 end
 
-read_floats(io::IO, count::Integer) = read_numbers(Float32, io, 16, count)
-read_vector(io::IO, count::Integer) = Float32[read_floats(io, count)...]
+read_floats(io::IO, count::Integer) = read_numbers(Float64, io, 16, count)
+read_vector(io::IO, count::Integer) = Float64[read_floats(io, count)...]
 
 # From "G_EQDSK.pdf":
 
@@ -214,41 +225,100 @@ end
         Coordinates of Ψ(r,z) along tokamak large radius R. 
 """
 rpoints(c::Content) = range(c.rleft, c.rleft + c.rdim; length=c.nw)
+
 """
     zpoints(c::Content)
 
-## returns
-
-    Coordinates of Ψ(r,z) along tokamak vertial axis Z. 
+Returns  coordinates of Ψ(r,z) along tokamak vertial axis Z. 
 """
-zpoints(c::Content) = range(c.zmid - 0.5f0 * c.zdim, c.zmid + 0.5f0 * c.zdim; length=c.nh)
+zpoints(c::Content) = range(c.zmid - 0.5c.zdim, c.zmid + 0.5c.zdim; length=c.nh)
 
 """
-    function normalize_psi(ψ::Matrix{Float32})::Matrix{Float32}
+    create_psi_interpolator(ψ, rpoints, zpoints)
 
-Transform matrix `Ψ` to have zero at minimum and 1.0 
-on the specified plasma boundary.
+Create interpolator for matrix `ψ` with coordinates `rpoints` and `zpoints`.
 
-## returns
-
-    Transformed matrix
+Returns function `ψ(r,z)` to compute `ψ` at arbitrary point.
 """
-function normalize_psi(ψ::Matrix{Float32})::Matrix{Float32}
-    ψ_min, _ = extrema(ψ)
-    (ψ .- ψ_min) / -0.746ψ_min
+create_psi_interpolator(ψ, r, z) =
+    scale(interpolate(ψ, BSpline(Quadratic(Line(OnGrid())))), r, z)
+
+"""
+    create_psi_interpolator(c::Content)
+
+Create `ψ`  interpolator for `Content`.
+"""
+create_psi_interpolator(c::Content) =
+    create_psi_interpolator(c.psirz, rpoints(c), zpoints(c))
+
+"""
+    calc_boundary_psi(c::Content)
+
+Returns average value of `ψ` at the specified plasma boundary.
+
+This value is used in `normalize_psi`.
+"""
+function calc_boundary_psi(c::Content)::Float64
+    interpolated_psi = create_psi_interpolator(c)
+    return mean(interpolated_psi(ri, zi) for (ri, zi) in zip(c.rbbbs, c.zbbbs))
 end
 
-normalize_psi(c::Content) = normalize_psi(c.psirz)
+"""
+    function normalize_psi(ψ::Matrix{Float64})::Matrix{Float64}
+
+Normalize matrix `Ψ` to have zero at minimum and 1.0 
+on the specified plasma boundary.
+
+
+Returns normalized matrix.
+"""
+function normalize_psi(ψ::Matrix{Float64}, Ψ_boundary::Float64)::Matrix{Float64}
+    ψ_min, _ = extrema(ψ)
+    return (ψ .- ψ_min) / (Ψ_boundary - ψ_min)
+end
+
+normalize_psi(c::Content)::Matrix{Float64} = normalize_psi(c.psirz, calc_boundary_psi(c))
+
+"""
+    create_normalized_psi_interpolator(c::Content)::Function
+
+Returns function `ψ(r,z)` where value is 0 at magnetic axis and 1 at plasma boundary
+"""
+function create_normalized_psi_interpolator(c::Content)::Function
+    itp = create_psi_interpolator(normalize_psi(c), rpoints(c), zpoints(c))
+    function ψ(r, z)
+        return max.(itp(r, z), 0.0)
+    end
+    return ψ
+end
 
 """
     lowest_boundary_point(c::Content)
 
-lowest_boundary_point point at plasma boundary.
-This is close to X-point in devertor area, so the name.
+Returns coordinates of the lowest point at plasma boundary.
+This is useful to select points in plasma.
+There should be `ψ ≤ 1` and the points are to be above this point.
 """
-function lowest_boundary_point(c::Content)::Tuple{Float32, Float32}
-	i = argmin(c.zbbbs)
-	c.rbbbs[i], c.zbbbs[i]
+function lowest_boundary_point(c::Content)::Tuple{Float64,Float64}
+    i = argmin(c.zbbbs)
+    return c.rbbbs[i], c.zbbbs[i]
 end
+
+"""
+    psi_separation_z(c::Content)
+
+The Z coordinate to separate plasma and divertor areas with `ψ` ≤ 1.
+"""
+psi_separation_z(c::Content)::Float64 = lowest_boundary_point(c)[2] - 0.01
+
+"""
+    in_plasma(ψ, r, z, separation_z)::Bool
+
+Is point (r,z) in plasma?
+
+"""
+in_plasma(ψ, r::Float64, z::Float64, separation_z::Float64)::Bool = separation_z < z && ψ(r,z) <= 1.0
+in_plasma(ψ, r, z::Float64, separation_z::Float64)::Bool = separation_z .< z && all(ψ(r,z) .<= 1.0)
+in_plasma(ψ, r, z, separation_z::Float64)::Bool = all(separation_z .< z) && all(ψ(ri,zi) <= 1.0 for ri in r for zi in z)
 
 end

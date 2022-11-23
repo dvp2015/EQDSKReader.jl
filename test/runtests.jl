@@ -10,22 +10,22 @@ function check_before_tq_file(data)
     @test occursin("disr", data.case)
     @test data.nw == 65
     @test data.nh == 129
-    @test data.current == 5.0f6
-    @test data.fpol[1] == -0.178683326f+02   # Note: compare as Float32, this is not equal to Float64 -0.178683326e+02
-    @test data.fpol[end] == -0.172000000f+02
-    @test data.pres[1] == 0.506794023f+06
-    @test data.pres[end] == 0.655331439f+01
-    @test data.ffprim[1] == -0.156641850f+02
+    @test data.current == 5.0e6
+    @test data.fpol[1] == -0.178683326e+02   # Note: compare as Float32, this is not equal to Float64 -0.178683326e+02
+    @test data.fpol[end] == -0.172000000e+02
+    @test data.pres[1] == 0.506794023e+06
+    @test data.pres[end] == 0.655331439e+01
+    @test data.ffprim[1] == -0.156641850e+02
     @test data.ffprim[end] == 0.0
-    @test data.pprime[1] == -0.674156969f+06
+    @test data.pprime[1] == -0.674156969e+06
     @test data.pprime[end] == 0.0
     @test size(data.psirz) == (data.nw, data.nh)
-    @test data.psirz[1, 1] == -0.988481275f+00
-    @test data.psirz[data.nw, 1] == -0.685782937f-01
-    @test data.psirz[1, data.nh] == -0.262203469f+00
-    @test data.psirz[data.nw, data.nh] == 0.848762220f+00
-    @test data.qpsi[1] == 0.889066518f+00
-    @test data.qpsi[end] == 0.415200567f+01
+    @test data.psirz[1, 1] == -0.988481275
+    @test data.psirz[data.nw, 1] == -0.685782937e-01
+    @test data.psirz[1, data.nh] == -0.262203469
+    @test data.psirz[data.nw, data.nh] == 0.84876222
+    @test data.qpsi[1] == 0.889066518
+    @test data.qpsi[end] == 0.415200567e+01
     @test data.nbbbs == 89
     @test data.limitr == 59
     # TODO dvp: add other corners
@@ -33,16 +33,31 @@ function check_before_tq_file(data)
     @test length(data.zbbbs) == data.nbbbs
     @test length(data.rlim) == data.limitr
     @test length(data.zlim) == data.limitr
-    @test data.zlim[end] == -0.680490000f+00
+    @test data.zlim[end] == -0.68049
     r = rpoints(data)
     @test length(r) == data.nw
-    @test eltype(r) == Float32
+    @test eltype(r) == Float64
     z = zpoints(data)
     @test length(z) == data.nh
-    @test eltype(z) == Float32
+    @test eltype(z) == Float64
     lbp = lowest_boundary_point(data)
-    @test lbp[2] ≈ -0.68f0
+    @test lbp[2] ≈ -0.68 atol=0.01
+    @test calc_boundary_psi(data) ≈ -0.54 atol=0.01
+    ψ = create_normalized_psi_interpolator(data)
+    ataxis = ψ(data.rmaxis, data.zmaxis) 
+    @test ataxis == 0.0
+    onboundary = [ψ(r,z) for (r,z) in zip(data.rbbbs, data.zbbbs)]
+    maxdiff_onboundary = extrema(abs.(onboundary .- 1.0))[2]
+    @test maxdiff_onboundary <= 2.608e-5
+    sepz = psi_separation_z(data)
+    @test sepz < lbp[2]
+    @test in_plasma(ψ, data.rmaxis, data.zmaxis, sepz)
+    @test !in_plasma(ψ, r[end], z[end], sepz)
+    @test !in_plasma(ψ, r, sepz-0.01, sepz)
+    close_to_boundary = 0.99*hcat(data.rbbbs, data.zbbbs) .+ 0.01*[data.rmaxis data.zmaxis]
+    @test in_plasma(ψ, close_to_boundary[:,1], close_to_boundary[:,2], sepz)
 
+    
 end
 
 
