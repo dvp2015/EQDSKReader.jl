@@ -222,14 +222,14 @@ end
     rpoints(c::Content)
 
 ## returns
-        Coordinates of Ψ(r,z) along tokamak large radius R. 
+        Coordinates of Ψ(r,z) along tokamak large radius R.
 """
 rpoints(c::Content) = range(c.rleft, c.rleft + c.rdim; length=c.nw)
 
 """
     zpoints(c::Content)
 
-Returns  coordinates of Ψ(r,z) along tokamak vertial axis Z. 
+Returns  coordinates of Ψ(r,z) along tokamak vertial axis Z.
 """
 zpoints(c::Content) = range(c.zmid - 0.5c.zdim, c.zmid + 0.5c.zdim; length=c.nh)
 
@@ -268,7 +268,7 @@ end
 """
     function normalize_psi(ψ::Matrix{Float64})::Matrix{Float64}
 
-Normalize matrix `Ψ` to have zero at minimum and 1.0 
+Normalize matrix `Ψ` to have zero at minimum and 1.0
 on the specified plasma boundary.
 
 
@@ -325,5 +325,7 @@ in_plasma(ψ, r, z::Float64, separation_z::Float64)::Bool =
     separation_z .< z && all(ψ(r, z) .≤ 1.0)
 in_plasma(ψ, r, z, separation_z::Float64)::Bool =
     all(separation_z .< z) && all(ψ(r, z) .≤ 1.0)
+
+
 
 end

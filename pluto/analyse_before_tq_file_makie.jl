@@ -11,19 +11,14 @@ using InteractiveUtils
 begin
  	using Pkg
  	Pkg.activate(temp=true)
-	Pkg.add([
-		# "ColorSchemes", 
+	packages = [
 		"GLMakie",
 		"PerceptualColourMaps",
-	])
-	# Use version controlled variant below if the above (most recent) stops working
-	# (working versions are fixed in this comment)
-	# Pkg.add(
-	#	"ColorSchemes", 3.19.0
-	# 	Pkg.PackageSpec(name="GLMakie", version="0.7.3"),
-	#   "Interpolations", 0.14.6
-	#   "PerceptualColourMaps", 0.3.6
-	# )
+		"XLSX",
+	]
+	Pkg.add(packages)
+	str_packages = join(packages, ", ", " and ")
+	md"Install packages $(str_packages)"
 end
 
 # ╔═╡ 63826b68-1a83-4ea4-b505-d774745a2624
@@ -35,6 +30,9 @@ using GLMakie
 # ╔═╡ 0ecaec62-3802-4f91-90ce-3d8680fec694
 using EQDSKReader
 
+# ╔═╡ ef57b24e-187f-44f7-a162-e4efc48079b5
+using XLSX
+
 # ╔═╡ c9a17fb4-3802-11ed-325c-8b2be110f038
 md"""
 # Analysing EQDSK file structure.
@@ -44,6 +42,7 @@ md"""
 begin
 	const HERE = @__DIR__
 	const ROOT = dirname(HERE)
+	md"Working directory: _$(pwd())_"
 end
 
 # ╔═╡ af1f348e-5cc6-4310-979c-4d5ef89e8a41
@@ -123,7 +122,7 @@ let
 		interpolated_psi(r[i[1]], z[i[2]]) - content.psirz[i]
 		for i in CartesianIndices(content.psirz)
 	])
-	cf = contourf!(ax, r, z, diffs, colormap=:blues, )
+	cf = contourf!(ax, r, z, diffs, colormap=cgrad(cmap("D8")), )
 	Colorbar(f[1,2], cf, label=L"|Ψ_interpolated(R,Z) - Ψ_0(R,Z)|")
 	f
 end
@@ -204,7 +203,7 @@ let
 	cntr = contourf!(ax,
 		r_fine, z_fine, ψ, 
 		levels=levels, 
-		colormap=:greens, 
+		colormap=cgrad(cmap("D8")), 
 		linestyle="-",
 		linecolor=:black,
 		linewidth=2
@@ -234,7 +233,7 @@ let
 	f
 end
 
-# ╔═╡ ef57b24e-187f-44f7-a162-e4efc48079b5
+# ╔═╡ 6deec15c-ffb5-411a-947f-ac86b60a2d13
 
 
 # ╔═╡ 520d792e-139f-45d4-9f89-1dafd7f4eee0
@@ -280,7 +279,7 @@ end
 
 # ╔═╡ Cell order:
 # ╟─c9a17fb4-3802-11ed-325c-8b2be110f038
-# ╠═b4318e67-2e90-4592-835f-e47fa872852f
+# ╟─b4318e67-2e90-4592-835f-e47fa872852f
 # ╠═ea134bdf-17ec-4280-933d-b7b2f4c323bf
 # ╠═af1f348e-5cc6-4310-979c-4d5ef89e8a41
 # ╠═63826b68-1a83-4ea4-b505-d774745a2624
@@ -299,4 +298,5 @@ end
 # ╠═45af3d57-db5f-43e2-90bc-2579511e2b83
 # ╠═044231f1-efd6-4d98-9c77-3e97723fa574
 # ╠═ef57b24e-187f-44f7-a162-e4efc48079b5
+# ╠═6deec15c-ffb5-411a-947f-ac86b60a2d13
 # ╠═520d792e-139f-45d4-9f89-1dafd7f4eee0
