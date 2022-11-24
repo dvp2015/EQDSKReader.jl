@@ -1,7 +1,7 @@
 style = "blue"
-# conditional_to_if = true
+# I prefer GeometryPredicates style.
 pipe_to_function_call = false
-# short_to_long_function_def = false
+always_use_return = false
 
 
 #

@@ -240,16 +240,18 @@ Create interpolator for matrix `ψ` with coordinates `rpoints` and `zpoints`.
 
 Returns function `ψ(r,z)` to compute `ψ` at arbitrary point.
 """
-create_psi_interpolator(ψ, r, z) =
+function create_psi_interpolator(ψ, r, z)
     scale(interpolate(ψ, BSpline(Quadratic(Line(OnGrid())))), r, z)
+end
 
 """
     create_psi_interpolator(c::Content)
 
 Create `ψ`  interpolator for `Content`.
 """
-create_psi_interpolator(c::Content) =
+function create_psi_interpolator(c::Content)
     create_psi_interpolator(c.psirz, rpoints(c), zpoints(c))
+end
 
 """
     calc_boundary_psi(c::Content)
@@ -289,7 +291,7 @@ function create_normalized_psi_interpolator(c::Content)::Function
     function ψ(r, z)
         return max.(itp(r, z), 0.0)
     end
-    return ψ
+    ψ
 end
 
 """
@@ -317,8 +319,11 @@ psi_separation_z(c::Content)::Float64 = lowest_boundary_point(c)[2] - 0.01
 Is point (r,z) in plasma?
 
 """
-in_plasma(ψ, r::Float64, z::Float64, separation_z::Float64)::Bool = separation_z < z && ψ(r,z) <= 1.0
-in_plasma(ψ, r, z::Float64, separation_z::Float64)::Bool = separation_z .< z && all(ψ(r,z) .<= 1.0)
-in_plasma(ψ, r, z, separation_z::Float64)::Bool = all(separation_z .< z) && all(ψ(ri,zi) <= 1.0 for ri in r for zi in z)
+in_plasma(ψ, r::Float64, z::Float64, separation_z::Float64)::Bool =
+    separation_z < z && ψ(r, z) <= 1.0
+in_plasma(ψ, r, z::Float64, separation_z::Float64)::Bool =
+    separation_z .< z && all(ψ(r, z) .<= 1.0)
+in_plasma(ψ, r, z, separation_z::Float64)::Bool =
+    all(separation_z .< z) && all(ψ(r, z) <= 1.0)
 
 end
