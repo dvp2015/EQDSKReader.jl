@@ -6,7 +6,7 @@ Provides functionality to read EQDSK file.
 module EQDSKReader
 
 using Interpolations
-using Statistics
+# using Statistics
 using StructEquality
 
 export Content,
@@ -104,11 +104,11 @@ join_lines_skipping_eols(io::IO) = reduce(*, readlines(io))
 read_str(io::IO, bytes::Integer) = String(Base.read(io, bytes))
 
 function read_number(::Type{T}, io::IO, bytes::Integer) where {T<:Number}
-    return parse(T, read_str(io, bytes))
+    parse(T, read_str(io, bytes))
 end
 
 function read_numbers(::Type{T}, io::IO, bytes::Integer, count::Integer) where {T<:Number}
-    return (read_number(T, io, bytes) for _ in 1:count)
+    (read_number(T, io, bytes) for _ in 1:count)
 end
 
 read_floats(io::IO, count::Integer) = read_numbers(Float64, io, 16, count)
@@ -188,7 +188,7 @@ function read_eqdsk(io::IO)
     rlim = A[1, :]
     zlim = A[2, :]
 
-    return Content(
+    Content(
         case,
         nw,
         nh,
@@ -262,7 +262,7 @@ This value is used in `normalize_psi`.
 """
 function calc_boundary_psi(c::Content)::Float64
     interpolated_psi = create_psi_interpolator(c)
-    return mean(interpolated_psi(ri, zi) for (ri, zi) in zip(c.rbbbs, c.zbbbs))
+    maximum(interpolated_psi(ri, zi) for (ri, zi) in zip(c.rbbbs, c.zbbbs))
 end
 
 """
@@ -276,7 +276,7 @@ Returns normalized matrix.
 """
 function normalize_psi(ψ::Matrix{Float64}, Ψ_boundary::Float64)::Matrix{Float64}
     ψ_min, _ = extrema(ψ)
-    return (ψ .- ψ_min) / (Ψ_boundary - ψ_min)
+    (ψ .- ψ_min) / (Ψ_boundary - ψ_min)
 end
 
 normalize_psi(c::Content)::Matrix{Float64} = normalize_psi(c.psirz, calc_boundary_psi(c))
@@ -289,7 +289,7 @@ Returns function `ψ(r,z)` where value is 0 at magnetic axis and 1 at plasma bou
 function create_normalized_psi_interpolator(c::Content)::Function
     itp = create_psi_interpolator(normalize_psi(c), rpoints(c), zpoints(c))
     function ψ(r, z)
-        return max.(itp(r, z), 0.0)
+        max.(itp(r, z), 0.0)
     end
     ψ
 end
@@ -303,7 +303,7 @@ There should be `ψ ≤ 1` and the points are to be above this point.
 """
 function lowest_boundary_point(c::Content)::Tuple{Float64,Float64}
     i = argmin(c.zbbbs)
-    return c.rbbbs[i], c.zbbbs[i]
+    c.rbbbs[i], c.zbbbs[i]
 end
 
 """
@@ -320,10 +320,10 @@ Is point (r,z) in plasma?
 
 """
 in_plasma(ψ, r::Float64, z::Float64, separation_z::Float64)::Bool =
-    separation_z < z && ψ(r, z) <= 1.0
+    separation_z < z && ψ(r, z) ≤ 1.0
 in_plasma(ψ, r, z::Float64, separation_z::Float64)::Bool =
-    separation_z .< z && all(ψ(r, z) .<= 1.0)
+    separation_z .< z && all(ψ(r, z) .≤ 1.0)
 in_plasma(ψ, r, z, separation_z::Float64)::Bool =
-    all(separation_z .< z) && all(ψ(r, z) <= 1.0)
+    all(separation_z .< z) && all(ψ(r, z) .≤ 1.0)
 
 end
