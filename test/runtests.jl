@@ -44,10 +44,10 @@ function check_before_tq_file(data)
     @test lbp[2] ≈ -0.68 atol=0.01
     @test calc_boundary_psi(data) ≈ -0.54 atol=0.01
     ψ = create_normalized_psi_interpolator(data)
-    ataxis = ψ(data.rmaxis, data.zmaxis) 
+    ataxis = ψ(data.rmaxis, data.zmaxis)
     @test ataxis == 0.0
     onboundary = [ψ(r,z) for (r,z) in zip(data.rbbbs, data.zbbbs)]
-    maxdiff_onboundary = extrema(abs.(onboundary .- 1.0))[2]
+    maxdiff_onboundary = maximum(abs.(onboundary .- 1.0))
     @test maxdiff_onboundary <= 4e-5
     sepz = psi_separation_z(data)
     @test sepz < lbp[2]
@@ -55,12 +55,10 @@ function check_before_tq_file(data)
     @test !in_plasma(ψ, r[end], z[end], sepz)
     @test !in_plasma(ψ, r, sepz-0.01, sepz)
     close_to_boundary = 0.99*hcat(data.rbbbs, data.zbbbs) .+ 0.01*[data.rmaxis data.zmaxis]
-    @test all(in_plasma(ψ, close_to_boundary[i,1], close_to_boundary[i,2], sepz) for i in 1:length(data.rbbbs)) 
+    @test all(in_plasma(ψ, close_to_boundary[i,1], close_to_boundary[i,2], sepz) for i in 1:length(data.rbbbs))
     rarry = LinRange(data.rmaxis - 0.5, data.rmaxis - 0.5, 10)
     zarry = LinRange(data.zmaxis - 0.5, data.zmaxis - 0.5, 10)
     @test in_plasma(ψ, rarry, zarry, sepz)
-
-    
 end
 
 
@@ -70,7 +68,7 @@ end
     open(INPUT_DATA) do io
         data2 = Content(io)
         @test hash(data) == hash(data2)
-        @test data == data2  
+        @test data == data2
         @test isequal(data, data2)
         @test data ≈ data2
     end
