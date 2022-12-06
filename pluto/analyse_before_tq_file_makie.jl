@@ -12,8 +12,9 @@ begin
  	using Pkg
  	Pkg.activate(temp=true)
 	packages = [
+		"ColorSchemes",
 		"GLMakie",
-		"PerceptualColourMaps",
+		# "PerceptualColourMaps",
 		"XLSX",
 	]
 	Pkg.add(packages)
@@ -29,9 +30,6 @@ using GLMakie
 
 # ╔═╡ 0ecaec62-3802-4f91-90ce-3d8680fec694
 using EQDSKReader
-
-# ╔═╡ ef57b24e-187f-44f7-a162-e4efc48079b5
-using XLSX
 
 # ╔═╡ c9a17fb4-3802-11ed-325c-8b2be110f038
 md"""
@@ -49,6 +47,9 @@ end
 # ╠═╡ show_logs = false
 Pkg.develop(path=ROOT)
 
+# ╔═╡ 7d112eaa-7f5e-4bc6-84ab-9e876449e223
+Pkg.status(packages)
+
 # ╔═╡ 76c71444-c280-4c59-a65b-7f8b0623068c
 GLMakie.activate!()
 
@@ -62,6 +63,51 @@ end
 
 # ╔═╡ eb21a90d-5bc7-4558-9ebd-69ad6decffee
 content = Content(DATA_FILE)
+
+# ╔═╡ 0f9983cd-a65a-468d-a208-287b2eec40a4
+let
+	using ColorSchemes
+	cbarPal = :thermal
+	cmap = cgrad(colorschemes[cbarPal], 7, categorical = true)
+	function plot_part(part, data, ylabel, hide_bottom=true)
+		ax = Axis(f[part, 1]; xlabel=L"ψ", ylabel=ylabel,
+			# ylabelcolor=cmap[part],
+			# xticks = range(0, 1, length=5),
+			xminorticks=IntervalsBetween(5),
+			xminorgridvisible=true,
+			# ytickformat="{:.0e}",
+		)
+		xlims!(ax, 0.0, 1.0)		
+		x = range(0., 1., length = length(data))
+		lines!(ax, x, data, color=cmap[part])
+		if hide_bottom
+			hidespines!(ax, :b)
+			hidexdecorations!(ax, grid=false, minorticks=false, minorgrid=false);
+		end
+		nothing
+	end
+	f = Figure(resolution=(800, 800))
+	for (i, (data, label)) in enumerate(zip([
+		content.qpsi, content.fpol, content.pres, content.ffprim, content.pprime
+	], [
+		L"q(ψ)", L"F_p(ψ)", L"P(ψ)", L"F_f'(ψ)", L"P'(ψ)"
+	]))
+		plot_part(i, data, label, !occursin("P'(", label))
+	end
+	rowgap!(f.layout, 0);
+	f
+end
+
+# ╔═╡ 5fc162c3-bbe2-4c5b-86a3-349bcec86ed0
+md"""## Show profiles of 1-D data from EQDSK.
+
+This includes: 
+- q(ψ) - sheer or magnetic configuration safety coefficient,
+- F_{pol}(ψ), - poloidal flux, ?,
+- P(ψ) - pressure
+- F'(ψ) - 
+- P'(ψ) - 
+"""
 
 # ╔═╡ c11ee525-3423-4958-8063-0346d6d6fa53
 begin
@@ -83,7 +129,7 @@ let
 	Ψ_min, Ψ_max = extrema(content.psirz)
 	levels=range(Ψ_min, Ψ_max, length=20)
 	cntr = contourf!(
-		r, z, content.psirz, levels=levels, colormap=cgrad(cmap("D8")), linestyle="-",
+		r, z, content.psirz, levels=levels, colormap=:bamako, linestyle="-",
 	)
 	cntr_psi_boundary = contour!(
 		r, z, 
@@ -105,8 +151,12 @@ let
 	f
 end
 
+# ╔═╡ bad0601f-45a8-48b2-8398-61a5d08c9229
+md"""## Check interpolation quality.
+"""
+
 # ╔═╡ 3450d86e-ec15-4504-b049-f3500509c62a
-interpolated_psi = create_psi_interpolator(content)
+interpolated_psi = create_psi_interpolator(content);
 
 # ╔═╡ 04b21833-1c88-4732-9cc5-61ecf45986b4
 let
@@ -116,13 +166,14 @@ let
 		xlabel=L"R,m", 
 		ylabel=L"Z,m", 
 		aspect=DataAspect(),
-		title="Difference between Ψ interpolated and original."
+		title=L"|Ψ_{interp} - Ψ_0|"
 	)
 	diffs = abs.([ 
 		interpolated_psi(r[i[1]], z[i[2]]) - content.psirz[i]
 		for i in CartesianIndices(content.psirz)
 	])
-	cf = contourf!(ax, r, z, diffs, colormap=cgrad(cmap("D8")), )
+	cf = contourf!(ax, r, z, diffs, colormap=:bamako)
+	# cf = contourf!(ax, r, z, diffs, colormap=cgrad(cmap("D8")), )
 	Colorbar(f[1,2], cf, label=L"|Ψ_interpolated(R,Z) - Ψ_0(R,Z)|")
 	f
 end
@@ -198,13 +249,14 @@ let
 	ψ = create_normalized_psi_interpolator(content)
 	# Ψ_min, Ψ_max = extrema(ψ(r, z))
 	# levels=range(Ψ_min, Ψ_max, length=20)
-	levels=range(0, 2, length=11)
+	levels=range(0, 2, length=17)
 	r_fine = range(r[1], r[end], 10length(r))
 	z_fine = range(z[1], z[end], 10length(z))
 	cntr = contourf!(ax,
 		r_fine, z_fine, ψ, 
 		levels=levels, 
-		colormap=cgrad(cmap("D8")), 
+		colormap=:bamako, 
+		# colormap=cgrad(cmap("D8")), 
 		linestyle="-",
 		linecolor=:black,
 		linewidth=2
@@ -230,20 +282,17 @@ let
 	Colorbar(f[1,2], cntr, label=L"Ψ(R,Z)", ticks=levels)
 	separation_value = LBPZ - 0.05
 	lines!(ax, [r[1], r[end]], [separation_value, separation_value], color=:black, label="Ψ separation value")
-	axislegend()
+	# leg = Legend(f[1,3], ax)
+	# leg.tellheight = false
+	axislegend(ax)
 	f
 end
 
-# ╔═╡ 6deec15c-ffb5-411a-947f-ac86b60a2d13
-XLSX.readxlsx
-
-# ╔═╡ 520d792e-139f-45d4-9f89-1dafd7f4eee0
-
-
 # ╔═╡ Cell order:
 # ╟─c9a17fb4-3802-11ed-325c-8b2be110f038
-# ╟─b4318e67-2e90-4592-835f-e47fa872852f
+# ╠═b4318e67-2e90-4592-835f-e47fa872852f
 # ╠═ea134bdf-17ec-4280-933d-b7b2f4c323bf
+# ╠═7d112eaa-7f5e-4bc6-84ab-9e876449e223
 # ╠═af1f348e-5cc6-4310-979c-4d5ef89e8a41
 # ╠═63826b68-1a83-4ea4-b505-d774745a2624
 # ╠═9a211d3c-bfcf-4b21-af66-27700f453856
@@ -251,15 +300,15 @@ XLSX.readxlsx
 # ╠═0ecaec62-3802-4f91-90ce-3d8680fec694
 # ╠═96716227-0cfd-47c3-82de-bb98b3042a1e
 # ╠═eb21a90d-5bc7-4558-9ebd-69ad6decffee
+# ╠═5fc162c3-bbe2-4c5b-86a3-349bcec86ed0
+# ╠═0f9983cd-a65a-468d-a208-287b2eec40a4
 # ╠═c11ee525-3423-4958-8063-0346d6d6fa53
 # ╠═5f8ce35c-a55f-4067-a4e1-e93da32dbc57
+# ╟─044231f1-efd6-4d98-9c77-3e97723fa574
+# ╟─bad0601f-45a8-48b2-8398-61a5d08c9229
 # ╠═3450d86e-ec15-4504-b049-f3500509c62a
 # ╠═04b21833-1c88-4732-9cc5-61ecf45986b4
 # ╠═fff49e68-b186-4e94-85ec-025970551d15
 # ╠═73152261-f0e2-4cec-8716-ba46acdbbb38
 # ╠═79fa01b3-1640-4cc4-8858-2bd982568971
 # ╠═45af3d57-db5f-43e2-90bc-2579511e2b83
-# ╠═044231f1-efd6-4d98-9c77-3e97723fa574
-# ╠═ef57b24e-187f-44f7-a162-e4efc48079b5
-# ╠═6deec15c-ffb5-411a-947f-ac86b60a2d13
-# ╠═520d792e-139f-45d4-9f89-1dafd7f4eee0
