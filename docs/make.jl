@@ -6,13 +6,13 @@ DocMeta.setdocmeta!(EQDSKReader, :DocTestSetup, :(using EQDSKReader); recursive=
 makedocs(;
     modules=[EQDSKReader],
     authors="dvp2015 <dmitri_portnov@yahoo.com>",
-    repo="https://github.com/dvp2015/EQDSKReader.jl/blob/{commit}{path}#{line}",
+    # repo="https://github.com/dvp2015/EQDSKReader.jl/blob/{commit}{path}#{line}",
     sitename="EQDSKReader.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://dvp2015.github.io/EQDSKReader.jl",
-        edit_link="main",
-        assets=String[],
+        # canonical="https://dvp2015.github.io/EQDSKReader.jl",
+        # edit_link="main",
+        # assets=String[],
     ),
     pages=[
         "Home" => "index.md",
@@ -22,7 +22,7 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/dvp2015/EQDSKReader.jl",
-    devbranch="main",
+    # devbranch="main",
 )
 
 
