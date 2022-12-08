@@ -1,6 +1,3 @@
-push!(LOAD_PATH,"../src/")
-println(LOAD_PATH)
-
 using Documenter
 using EQDSKReader
 
