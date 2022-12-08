@@ -2,6 +2,10 @@
 
 Tools to read and demo files in EQDSK format, representing plasma equilibrium model.
 
+!!! note "Beware!"
+
+    The documentation is in progress...
+
 > ## Note!
 > 
 > The document is just started...
