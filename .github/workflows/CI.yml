@@ -4,7 +4,7 @@ on:
     branches:
       - main
       - devel
-    tags: ['*']
+    tags: ["*"]
   pull_request:
 concurrency:
   # Skip intermediate builds: always.
@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - 'nightly'
+          - "nightly"
         os:
           - ubuntu-latest
         arch:
@@ -39,22 +39,21 @@ jobs:
           files: lcov.info
   docs:
     name: Documentation test
-    runs-on: ubuntu-latest
     permissions:
       contents: write
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v1
         with:
-          version: '1'
+          version: "1"
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
-       - run: |
+      - run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
             using EQDSKReader
             DocMeta.setdocmeta!(EQDSKReader, :DocTestSetup, :(using EQDSKReader); recursive=true)
             doctest(EQDSKReader)'
-
