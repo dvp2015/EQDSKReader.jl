@@ -40,8 +40,8 @@ jobs:
   docs:
     name: Documentation test
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    # permissions:
+    #   contents: write
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v1
