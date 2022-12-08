@@ -4,6 +4,9 @@ insert!(LOAD_PATH, 1, dirname(HERE))
 using EQDSKReader
 using Test
 
+# using Documenter
+# doctest(MyPackage) TODO dvp: enable doctests if needed
+
 const INPUT_DATA = joinpath(HERE, "data", "beforeTQ.eqdsk")
 
 function check_before_tq_file(data)
