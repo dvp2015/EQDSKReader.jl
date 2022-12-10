@@ -18,7 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["1", "nightly", "1.9.0-alpha1", "1.6.7"]
+        version: [stable, nightly, lts]
+        # version: ["1", "nightly", "1.9.0-alpha1", "1.6.7"]
         os:
           - ubuntu-latest
         arch:
@@ -37,7 +38,7 @@ jobs:
         with:
           files: lcov.info
   docs:
-    name: Documentation test
+    name: Documentation
     permissions:
       contents: write
     runs-on: ubuntu-latest
