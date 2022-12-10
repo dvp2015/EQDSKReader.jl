@@ -18,8 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version:
-          - "nightly"
+        version: ["stable", "nightly", "lts"]
         os:
           - ubuntu-latest
         arch:
