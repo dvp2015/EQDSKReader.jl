@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.16
+# v0.19.26
 
 using Markdown
 using InteractiveUtils
@@ -14,10 +14,11 @@ begin
 	packages = [
 		"ColorSchemes",
 		"GLMakie",
-		# "PerceptualColourMaps",
+		"PerceptualColourMaps",
 		"XLSX",
 	]
 	Pkg.add(packages)
+	Pkg.add("..")
 	str_packages = join(packages, ", ", " and ")
 	md"Install packages $(str_packages)"
 end
@@ -231,7 +232,10 @@ let
 end
 
 # ╔═╡ 45af3d57-db5f-43e2-90bc-2579511e2b83
-LBPX, LBPZ = lowest_boundary_point(content)
+begin
+	LBPX, LBPZ = lowest_boundary_point(content)
+	md"Lowest boundary point coordinates $LBPX, $LBPZ"
+end
 
 # ╔═╡ 044231f1-efd6-4d98-9c77-3e97723fa574
 let
@@ -293,22 +297,22 @@ end
 # ╠═b4318e67-2e90-4592-835f-e47fa872852f
 # ╠═ea134bdf-17ec-4280-933d-b7b2f4c323bf
 # ╠═7d112eaa-7f5e-4bc6-84ab-9e876449e223
-# ╠═af1f348e-5cc6-4310-979c-4d5ef89e8a41
-# ╠═63826b68-1a83-4ea4-b505-d774745a2624
+# ╟─af1f348e-5cc6-4310-979c-4d5ef89e8a41
+# ╟─63826b68-1a83-4ea4-b505-d774745a2624
 # ╠═9a211d3c-bfcf-4b21-af66-27700f453856
-# ╠═76c71444-c280-4c59-a65b-7f8b0623068c
+# ╟─76c71444-c280-4c59-a65b-7f8b0623068c
 # ╠═0ecaec62-3802-4f91-90ce-3d8680fec694
-# ╠═96716227-0cfd-47c3-82de-bb98b3042a1e
+# ╟─96716227-0cfd-47c3-82de-bb98b3042a1e
 # ╠═eb21a90d-5bc7-4558-9ebd-69ad6decffee
-# ╠═5fc162c3-bbe2-4c5b-86a3-349bcec86ed0
+# ╟─5fc162c3-bbe2-4c5b-86a3-349bcec86ed0
 # ╠═0f9983cd-a65a-468d-a208-287b2eec40a4
-# ╠═c11ee525-3423-4958-8063-0346d6d6fa53
+# ╟─c11ee525-3423-4958-8063-0346d6d6fa53
 # ╠═5f8ce35c-a55f-4067-a4e1-e93da32dbc57
-# ╟─044231f1-efd6-4d98-9c77-3e97723fa574
+# ╠═044231f1-efd6-4d98-9c77-3e97723fa574
 # ╟─bad0601f-45a8-48b2-8398-61a5d08c9229
-# ╠═3450d86e-ec15-4504-b049-f3500509c62a
-# ╠═04b21833-1c88-4732-9cc5-61ecf45986b4
-# ╠═fff49e68-b186-4e94-85ec-025970551d15
-# ╠═73152261-f0e2-4cec-8716-ba46acdbbb38
+# ╟─3450d86e-ec15-4504-b049-f3500509c62a
+# ╟─04b21833-1c88-4732-9cc5-61ecf45986b4
+# ╟─fff49e68-b186-4e94-85ec-025970551d15
+# ╟─73152261-f0e2-4cec-8716-ba46acdbbb38
 # ╠═79fa01b3-1640-4cc4-8858-2bd982568971
-# ╠═45af3d57-db5f-43e2-90bc-2579511e2b83
+# ╟─45af3d57-db5f-43e2-90bc-2579511e2b83
